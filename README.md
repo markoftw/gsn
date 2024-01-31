@@ -15,7 +15,9 @@
 [![](https://img.shields.io/bundlephobia/minzip/@opengsn/provider)](https://bundlephobia.com/package/@opengsn/provider)
 # The Ethereum Gas Stations Network
 
+
 [![Join our Discord server!](https://invidget.switchblade.xyz/b5Jk9kWcPG)](http://discord.gg/b5Jk9kWcPG)
+
 
 ## What is GSN?
 [GSN](https://opengsn.org/) is a distributed network of transaction relayers that allows decentralized
