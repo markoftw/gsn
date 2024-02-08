@@ -94,17 +94,16 @@ jobs: # a collection of steps
           at: .
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: # run tests
+      - run:
           name: dockerize
           command: |
             ls -al
             cd dockers/jsrelay
             ls -al
             
-            find ./dbuild.sh ../../packages/*/src/ -type f -newer dist/relayserver.js 2>&1 | grep . && {
-#              yarn preprocess
-              npx webpack
-            }
+            find ./dbuild.sh ../../packages/*/src/ -type f -newer dist/relayserver.js 2>&1 | grep .
+            
+            npx webpack
             
             docker build -f Dockerfile -t $DOCKERHUB_USERNAME/opengsn-relay:$APP_VERSION .
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
