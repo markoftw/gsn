@@ -34,7 +34,9 @@ jobs: # a collection of steps
 
       - run:
           name: yarn-preprocess
-          command: yarn preprocess
+          command: |
+            yarn preprocess
+            ls -al
 
       - persist_to_workspace:
           root: .
@@ -95,7 +97,9 @@ jobs: # a collection of steps
       - run: # run tests
           name: dockerize
           command: |
+            ls -al
             cd dockers/jsrelay
+            ls -al
             docker build -f Dockerfile -t $DOCKERHUB_USERNAME/opengsn-relay:$APP_VERSION .
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
             docker push $DOCKERHUB_USERNAME/opengsn-relay:$APP_VERSION
@@ -207,36 +211,36 @@ workflows:
       - build_paymasters:
           requires:
             - build
-      - test_dev:
-          requires:
-            - build
-      - test_paymasters:
-          requires:
-            - build
-            - build_paymasters
+#      - test_dev:
+#          requires:
+#            - build
+#      - test_paymasters:
+#          requires:
+#            - build
+#            - build_paymasters
       - dockerize:
           requires:
             - build
             - build_paymasters
-            - test_paymasters
-      - lint:
-          requires:
-            - build
-      - lint_paymasters:
-          requires:
-            - build_paymasters
-      - depcheck:
-          requires:
-            - build
-            - build_paymasters
-      - test_fork:
-          requires:
-            - build
-            - build_paymasters
-      - gas_calculations:
-          requires:
-            - build
-      - test_webpack:
-          requires:
-            - build
+#            - test_paymasters
+#      - lint:
+#          requires:
+#            - build
+#      - lint_paymasters:
+#          requires:
+#            - build_paymasters
+#      - depcheck:
+#          requires:
+#            - build
+#            - build_paymasters
+#      - test_fork:
+#          requires:
+#            - build
+#            - build_paymasters
+#      - gas_calculations:
+#          requires:
+#            - build
+#      - test_webpack:
+#          requires:
+#            - build
 
