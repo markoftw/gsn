@@ -103,9 +103,7 @@ jobs: # a collection of steps
             
             mkdir dist
             touch dist/relayserver.js
-            
-#            find ./dbuild.sh ../../packages/*/src/ -type f -newer dist/relayserver.js 2>&1 | grep .
-            
+
             npx webpack
             
             ls -al
