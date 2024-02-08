@@ -4,6 +4,9 @@ jobs: # a collection of steps
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
       - image: cimg/node:16.20.1
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
 
     steps: # a collection of executable commands
       - checkout # special step to check out source code to working directory
@@ -79,6 +82,21 @@ jobs: # a collection of steps
           command: yarn lerna-run-test-paymasters-only-with-hardhat | tee /tmp/test-paymasters-results.log
       - store_test_results: # special step to upload test results for display in Test Summary
           path: /tmp/test-paymasters-results.log
+
+  dockerize:
+    working_directory: ~/gls # directory where steps will run
+    docker: # run the steps with Docker
+      - image: cimg/node:16.20.1
+    steps: # a collection of executable commands
+      - attach_workspace:
+          at: .
+      - run: # run tests
+          name: dockerize
+          command: |
+            test -z "$VERSION" && VERSION=`node -e "console.log(require('packages/common/dist/Version.js').gsnRuntimeVersion)"`
+            docker build -t $DOCKERHUB_USERNAME/opengsn-relay:$VERSION .
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+            docker push $DOCKERHUB_USERNAME/opengsn-relay:$VERSION
 
   gas_calculations:
     working_directory: ~/gls # directory where steps will run
@@ -194,6 +212,11 @@ workflows:
           requires:
             - build
             - build_paymasters
+      - dockerize:
+          requires:
+            - build
+            - build_paymasters
+            - test_paymasters
       - lint:
           requires:
             - build
