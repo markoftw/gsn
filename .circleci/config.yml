@@ -101,12 +101,17 @@ jobs: # a collection of steps
             cd dockers/jsrelay
             ls -al
             
+            mkdir dist
+            touch dist/relayserver.js
+            
             find ./dbuild.sh ../../packages/*/src/ -type f -newer dist/relayserver.js 2>&1 | grep .
             
             npx webpack
             
             ls -al
             ls -al dist/
+            head -n 50 dist/relayserver.js
+            tail -n 50 dist/relayserver.js
             
             docker build -f Dockerfile -t $DOCKERHUB_USERNAME/opengsn-relay:$APP_VERSION .
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
