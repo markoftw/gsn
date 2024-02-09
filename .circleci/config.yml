@@ -85,10 +85,7 @@ jobs: # a collection of steps
   dockerize:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/base:2024.01
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
+      - image: cimg/node:16.20.1
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
