@@ -2,7 +2,6 @@
 import abiDecoder from 'abi-decoder'
 import crypto from 'crypto'
 import { Transaction as EthereumJsTransaction, type TxOptions, type TxData } from '@ethereumjs/tx'
-import { type TransactionResponse } from '@ethersproject/providers'
 import { bufferToHex, isZeroAddress, type PrefixedHexString, toBuffer } from 'ethereumjs-util'
 import * as ethUtils from 'ethereumjs-util'
 
@@ -37,6 +36,7 @@ import { type ServerConfigParams } from '../ServerConfigParams'
 import { type Web3MethodsBuilder } from '../Web3MethodsBuilder'
 
 import Timeout = NodeJS.Timeout
+import { TransactionResponse } from 'ethers'
 
 abiDecoder.addABI(RelayHubABI)
 abiDecoder.addABI(PayMasterABI)
@@ -66,9 +66,9 @@ function createWeb3Transaction (transaction: TransactionResponse, rawTxOptions: 
     data: transaction.data,
     nonce: transaction.nonce,
     value,
-    v: transaction.v,
-    r: transaction.r,
-    s: transaction.s
+    v: transaction.signature.v,
+    r: transaction.signature.r,
+    s: transaction.signature.s
   }
   return new EthereumJsTransaction(txData, rawTxOptions)
 }
@@ -320,9 +320,9 @@ export class PenalizerService {
       {
         signer: this.managerAddress,
         method,
-        destination: this.contractInteractor.penalizerInstance.address,
+        destination: this.contractInteractor.penalizerInstance.target.toString(),
         creationBlockNumber,
-        creationBlockHash: block.hash,
+        creationBlockHash: block.hash!,
         creationBlockTimestamp,
         serverAction
       })
@@ -334,7 +334,7 @@ export class PenalizerService {
     const chainId = this.contractInteractor.chainId
     const { data, signature } = getDataAndSignature(requestTx, chainId)
     return [
-      data, signature, this.contractInteractor.relayHubInstance.address,
+      data, signature, this.contractInteractor.relayHubInstance.target.toString(),
       randomValue
     ]
   }
@@ -345,7 +345,7 @@ export class PenalizerService {
     const { data: unsignedRequestTx, signature: requestTxSig } = getDataAndSignature(requestTx, chainId)
     return [
       unsignedRequestTx, requestTxSig, unsignedMinedTx,
-      minedTxSig, this.contractInteractor.relayHubInstance.address,
+      minedTxSig, this.contractInteractor.relayHubInstance.target.toString(),
       randomValue
     ]
   }

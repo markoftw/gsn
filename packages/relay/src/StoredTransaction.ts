@@ -2,6 +2,7 @@ import { Capability, type FeeMarketEIP1559Transaction, type Transaction, type Ty
 import * as ethUtils from 'ethereumjs-util'
 import { type PrefixedHexString } from 'ethereumjs-util'
 import { type Address } from '@opengsn/common'
+import { Block } from 'ethers'
 
 export enum ServerAction {
   REGISTER_SERVER,
@@ -43,7 +44,7 @@ export interface NonceSigner {
 }
 
 export interface ShortBlockInfo {
-  hash: PrefixedHexString
+  hash: PrefixedHexString | null
   number: number
   timestamp: number | string
 }

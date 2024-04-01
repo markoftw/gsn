@@ -1,9 +1,8 @@
 import { AbiCoder } from '@ethersproject/abi'
 import { BigNumber } from '@ethersproject/bignumber'
 import { EventEmitter } from 'events'
-import { type ExternalProvider, JsonRpcProvider, type JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
-import { type Signer } from '@ethersproject/abstract-signer'
-import { type JsonRpcApiProvider as ProviderEthersV6, type Signer as SignerEthersV6 } from 'ethers-v6'
+import { type ExternalProvider, Web3Provider } from '@ethersproject/providers'
+import { type JsonRpcApiProvider, type Signer } from 'ethers'
 import { type PrefixedHexString, toBuffer } from 'ethereumjs-util'
 import { type Transaction, parse, serialize } from '@ethersproject/transactions'
 
@@ -66,7 +65,7 @@ import {
   GsnValidateRequestEvent
 } from './GsnEvents'
 import { RelayCallGasLimitCalculationHelper } from '@opengsn/common/dist/RelayCallGasLimitCalculationHelper'
-import { type IPaymaster } from '@opengsn/contracts/types/ethers-contracts'
+import { type IPaymaster } from '@opengsn/contracts/dist/typechain-types'
 
 // generate "approvalData" and "paymasterData" for a request.
 // both are bytes arrays. paymasterData is part of the client request.
@@ -118,28 +117,24 @@ export interface RelayingResult {
 
 type sendWeb3js = (payload: JsonRpcPayload, callback: (error: Error | null, result?: JsonRpcResponse) => unknown) => void
 
-interface Web3JsProvider { send: sendWeb3js }
+interface Web3JsProvider {send: sendWeb3js}
 
 type SupportedProviderLikeType =
-  JsonRpcProvider
   | Signer
-  | ProviderEthersV6
-  | SignerEthersV6
+  | JsonRpcApiProvider
   | ExternalProvider
   | Web3JsProvider
 
 export enum InputProviderType {
   Web3JsProvider,
-  ProviderEthersV5,
-  SignerEthersV5,
   ProviderEthersV6,
   SignerEthersV6
 }
 
 // TODO: not even sure v6 provider will work if forced, not wrapped - and wrapping is PITA
 export async function wrapInputProviderLike (input: SupportedProviderLikeType): Promise<{
-  provider: JsonRpcProvider
-  signer: JsonRpcSigner
+  provider: JsonRpcApiProvider
+  signer: Signer
   inputProviderType: InputProviderType
 }> {
   // 1. detect Ethers.js Signer
@@ -151,26 +146,29 @@ export async function wrapInputProviderLike (input: SupportedProviderLikeType): 
     if (providerFromSigner == null) {
       throw new Error('signer not connected')
     }
-    if (JsonRpcProvider.isProvider(providerFromSigner)) {
-      return {
-        inputProviderType: InputProviderType.SignerEthersV5,
-        provider: providerFromSigner as any,
-        signer: input as any
-      }
-    } else {
-      // this seems to be Ethers v6 signer input - wrapping its provider's "send" function
-      const provider = new Web3Provider(async (method: string, params?: any[]) => {
-        const providerIn = (input as any).provider
-        return providerIn.send.bind(providerIn)(method, params)
-      })
+    // if (JsonRpcProvider.isProvider(providerFromSigner)) {
+    //   return {
+    //     inputProviderType: InputProviderType.SignerEthersV5,
+    //     provider: providerFromSigner as any,
+    //     signer: input as any
+    //   }
+    // } else {
+
+    // TODO: STOPSHIP: no need to wrap anything anymore!!
+    // this seems to be Ethers v6 signer input - wrapping its provider's "send" function
+    const provider = new Web3Provider(async (method: string, params?: any[]) => {
+      const providerIn = (input as any).provider
+      return providerIn.send.bind(providerIn)(method, params)
+    })
+    // @ts-ignore
+    input._isSigner = true
+    return {
+      inputProviderType: InputProviderType.SignerEthersV6,
       // @ts-ignore
-      input._isSigner = true
-      return {
-        inputProviderType: InputProviderType.SignerEthersV6,
-        provider,
-        signer: input as any
-      }
+      provider,
+      signer: input as any
     }
+    // }
   }
 
   // 2. detect Ethers.js Provider
@@ -178,23 +176,25 @@ export async function wrapInputProviderLike (input: SupportedProviderLikeType): 
     typeof input === 'object' &&
     typeof (input as any).getSigner === 'function'
   ) {
-    if (JsonRpcProvider.isProvider(input)) {
-      return {
-        inputProviderType: InputProviderType.ProviderEthersV5,
-        provider: input as any,
-        signer: (input as any).getSigner()
-      }
-    } else {
-      // this seems to be Ethers v6 provider input - wrapping its "send" function
-      const provider = new Web3Provider(async (method: string, params?: any[]) => {
-        return (input as any).send.bind(input)(method, params)
-      })
-      return {
-        inputProviderType: InputProviderType.ProviderEthersV6,
-        provider,
-        signer: provider.getSigner()
-      }
+    // if (JsonRpcProvider.isProvider(input)) {
+    //   return {
+    //     inputProviderType: InputProviderType.ProviderEthersV5,
+    //     provider: input as any,
+    //     signer: (input as any).getSigner()
+    //   }
+    // } else {
+    // this seems to be Ethers v6 provider input - wrapping its "send" function
+    const provider = new Web3Provider(async (method: string, params?: any[]) => {
+      return (input as any).send.bind(input)(method, params)
+    })
+    return {
+      inputProviderType: InputProviderType.ProviderEthersV6,
+      // @ts-ignore
+      provider,
+      // @ts-ignore
+      signer: provider.getSigner()
     }
+    // }
   }
 
   // 3. probably a "window.ethereum" or "Web3.js" Provider - wrap it with Ethers.js
@@ -202,7 +202,9 @@ export async function wrapInputProviderLike (input: SupportedProviderLikeType): 
     const provider = new Web3Provider(input as any)
     return {
       inputProviderType: InputProviderType.Web3JsProvider,
+      // @ts-ignore
       provider,
+      // @ts-ignore
       signer: provider.getSigner()
     }
   }
@@ -220,8 +222,8 @@ export class RelayClient {
   logger!: LoggerInterface
   initializingPromise?: Promise<void>
   inputProviderType!: InputProviderType
-  wrappedUnderlyingProvider!: JsonRpcProvider
-  wrappedUnderlyingSigner!: JsonRpcSigner
+  wrappedUnderlyingProvider!: JsonRpcApiProvider
+  wrappedUnderlyingSigner!: Signer
 
   constructor (
     rawConstructorInput: GSNUnresolvedConstructorInput
@@ -699,7 +701,7 @@ export class RelayClient {
   }: GSNUnresolvedConstructorInput): Promise<GSNConfig> {
     let configFromServer: Partial<GSNConfig> = {}
     const network = await this.wrappedUnderlyingProvider.getNetwork()
-    const chainId = network.chainId
+    const chainId = parseInt(network.chainId.toString())
     const useClientDefaultConfigUrl = config.useClientDefaultConfigUrl ?? defaultGsnConfig.useClientDefaultConfigUrl
     if (useClientDefaultConfigUrl) {
       this.logger.debug(`Reading default client config for chainId ${chainId.toString()}`)
@@ -785,7 +787,6 @@ export class RelayClient {
     const useEthersV6 = this.isUsingEthersV6()
     const contractInteractor = overrideDependencies?.contractInteractor ??
       await new ContractInteractor({
-        useEthersV6,
         provider: this.wrappedUnderlyingProvider,
         signer: this.wrappedUnderlyingSigner,
         versionManager,
@@ -841,7 +842,6 @@ export class RelayClient {
 
   isConnectedWithSigner (): boolean {
     return (
-      this.inputProviderType === InputProviderType.SignerEthersV5 ||
       this.inputProviderType === InputProviderType.SignerEthersV6
     )
   }
@@ -1002,7 +1002,7 @@ export class RelayClient {
       (from != null && !isSameAddress(from, currentSignerAddress))
     ) {
       this.logger.warn('Warning: Passing "from" parameter override in transaction details is not supported in Ethers.js, may cause various bugs and support will be removed from GSN in the next major version.')
-      this.wrappedUnderlyingSigner = this.wrappedUnderlyingProvider.getSigner(from)
+      this.wrappedUnderlyingSigner = await this.wrappedUnderlyingProvider.getSigner(from)
       this.dependencies.accountManager.switchSigner(this.wrappedUnderlyingSigner)
     }
   }
