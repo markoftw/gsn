@@ -5,9 +5,9 @@ import { Transaction as EthereumJsTransaction, type TxOptions, type TxData } fro
 import { bufferToHex, isZeroAddress, type PrefixedHexString, toBuffer } from 'ethereumjs-util'
 import * as ethUtils from 'ethereumjs-util'
 
-import PayMasterABI from '@opengsn/common/dist/interfaces/IPaymaster.json'
-import RelayHubABI from '@opengsn/common/dist/interfaces/IRelayHub.json'
-import StakeManagerABI from '@opengsn/common/dist/interfaces/IStakeManager.json'
+import PayMasterABI from '@opengsn/contracts/artifacts/src/interfaces/IPaymaster.sol/IPaymaster.json'
+import RelayHubABI from '@opengsn/contracts/artifacts/src/interfaces/IRelayHub.sol/IRelayHub.json'
+import StakeManagerABI from '@opengsn/contracts/artifacts/src/interfaces/IRelayStakeManager.sol/IRelayStakeManager.json'
 
 import {
   type AuditRequest,
