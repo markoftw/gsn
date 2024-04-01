@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.25;
 pragma abicoder v2;
 
 import "../RelayHub.sol";
@@ -24,7 +24,7 @@ contract ArbRelayHub is RelayHub {
     /// @notice we accept the `ArbSys` address in the constructor to allow mocking it in tests.
     constructor(
         ArbSys _arbsys,
-        IStakeManager _stakeManager,
+        IRelayStakeManager _stakeManager,
         address _penalizer,
         address _batchGateway,
         address _relayRegistrar,

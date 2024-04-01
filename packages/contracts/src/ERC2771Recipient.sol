@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable no-inline-assembly
-pragma solidity >=0.6.9;
+pragma solidity ^0.8.25;
 
 import "./interfaces/IERC2771Recipient.sol";
 

@@ -4,7 +4,7 @@
 /* solhint-disable avoid-tx-origin */
 /* solhint-disable bracket-align */
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.25;
 pragma abicoder v2;
 
 // #if ENABLE_CONSOLE_LOG
@@ -26,9 +26,7 @@ import "./utils/GsnTypes.sol";
 import "./interfaces/IRelayHub.sol";
 import "./interfaces/IPaymaster.sol";
 import "./forwarder/IForwarder.sol";
-import "./interfaces/IStakeManager.sol";
 import "./interfaces/IRelayRegistrar.sol";
-import "./interfaces/IStakeManager.sol";
 
 /**
  * @title The RelayHub Implementation
@@ -45,7 +43,7 @@ contract RelayHub is IRelayHub, Ownable, ERC165 {
         return "3.0.0-beta.3+opengsn.hub.irelayhub";
     }
 
-    IStakeManager internal immutable stakeManager;
+    IRelayStakeManager internal immutable stakeManager;
     address internal immutable penalizer;
     address internal immutable batchGateway;
     address internal immutable relayRegistrar;
@@ -88,7 +86,7 @@ contract RelayHub is IRelayHub, Ownable, ERC165 {
     uint256 internal deprecationTime = type(uint256).max;
 
     constructor (
-        IStakeManager _stakeManager,
+        IRelayStakeManager _stakeManager,
         address _penalizer,
         address _batchGateway,
         address _relayRegistrar,
@@ -113,7 +111,7 @@ contract RelayHub is IRelayHub, Ownable, ERC165 {
     }
 
     /// @inheritdoc IRelayHub
-    function getStakeManager() external override view returns (IStakeManager) {
+    function getStakeManager() external override view returns (IRelayStakeManager) {
         return stakeManager;
     }
 
@@ -569,7 +567,7 @@ contract RelayHub is IRelayHub, Ownable, ERC165 {
 
     /// @inheritdoc IRelayHub
     function verifyRelayManagerStaked(address relayManager) public override view {
-        (IStakeManager.StakeInfo memory info, bool isHubAuthorized) = stakeManager.getStakeInfo(relayManager);
+        (IRelayStakeManager.StakeInfo memory info, bool isHubAuthorized) = stakeManager.getStakeInfo(relayManager);
         uint256 minimumStake = minimumStakePerToken[info.token];
         require(info.token != IERC20(address(0)), "relay manager not staked");
         require(info.stake >= minimumStake, "stake amount is too small");
@@ -602,7 +600,7 @@ contract RelayHub is IRelayHub, Ownable, ERC165 {
         address relayManager = workerToManager[relayWorker];
         // The worker must be controlled by a manager with a locked stake
         require(relayManager != address(0), "Unknown relay worker");
-        (IStakeManager.StakeInfo memory stakeInfo,) = stakeManager.getStakeInfo(relayManager);
+        (IRelayStakeManager.StakeInfo memory stakeInfo,) = stakeManager.getStakeInfo(relayManager);
         require(stakeInfo.stake > 0, "relay manager not staked");
         stakeManager.penalizeRelayManager(relayManager, beneficiary, stakeInfo.stake);
     }
