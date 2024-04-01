@@ -52,7 +52,7 @@ if (!fs.existsSync(path.join(CONTRACTS_LINK, 'paymasters/SingleRecipientPaymaste
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.7',
+    version: '0.8.23',
     settings: {
       optimizer: {
         enabled: true

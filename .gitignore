@@ -33,7 +33,6 @@ yarn-error.log
 /packages/contracts/build/
 /packages/contracts/json-input.json
 /packages/contracts/types/ethers-contracts/
-/packages/contracts/types/truffle-contracts/
 /verdaccio/db/
 /.yarnrc
 /build/gsn
@@ -49,5 +48,7 @@ hardhat.log
 /packages/deployer/all-networks.json
 /packages/deployer/deployments/
 /Project.xml
-/packages/dev/types/truffle-contracts/
 
+/packages/contracts/typechain-types/
+/packages/dev/types/
+/packages/dev/typechain-types
