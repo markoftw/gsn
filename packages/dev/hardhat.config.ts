@@ -5,10 +5,7 @@ import '@nomiclabs/hardhat-truffle5'
 module.exports = {
   networks: {
     npmtest: { // used from "npm test". see package.json
-      verbose: process.env.VERBOSE,
-      host: '127.0.0.1',
-      port: 8544,
-      network_id: '*'
+      url: '127.0.0.1:8544'
     }
   },
   solidity:
