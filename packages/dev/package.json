@@ -11,7 +11,7 @@
     "access": "public"
   },
   "scripts": {
-    "tsc": "typechain-generate-truffle && tsc",
+    "tsc": "yarn typechain-generate-truffle && tsc",
     "watch-tsc": "tsc -w --preserveWatchOutput",
     "lint": "eslint -f unix .",
     "lint-fix": "yarn lint --fix",
