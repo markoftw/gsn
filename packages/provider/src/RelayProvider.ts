@@ -27,7 +27,7 @@ import {
   TransactionRelayed
 } from '@opengsn/common'
 
-import relayHubAbi from '@opengsn/common/dist/interfaces/IRelayHub.json'
+import relayHubAbi from '@opengsn/contracts/artifacts/src/interfaces/IRelayHub.sol/IRelayHub.json'
 
 import { type AccountKeypair } from './AccountManager'
 import { type GsnEvent } from './GsnEvents'
@@ -451,7 +451,7 @@ export class RelayProvider implements ExternalProvider, Eip1193Provider {
     if (respResult.logs.length === 0) {
       return fixedTransactionReceipt
     }
-    const iface = new Interface(relayHubAbi)
+    const iface = new Interface(relayHubAbi.abi)
     const logs: Array<LogDescription | undefined> = respResult.logs.map(
       it => {
         try {
