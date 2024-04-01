@@ -5,7 +5,7 @@ import '@nomiclabs/hardhat-truffle5'
 module.exports = {
   networks: {
     npmtest: { // used from "npm test". see package.json
-      url: '127.0.0.1:8544'
+      url: 'http://127.0.0.1:8544'
     }
   },
   solidity:

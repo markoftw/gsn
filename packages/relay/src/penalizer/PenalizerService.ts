@@ -38,9 +38,9 @@ import { type Web3MethodsBuilder } from '../Web3MethodsBuilder'
 import Timeout = NodeJS.Timeout
 import { TransactionResponse } from 'ethers'
 
-abiDecoder.addABI(RelayHubABI)
-abiDecoder.addABI(PayMasterABI)
-abiDecoder.addABI(StakeManagerABI)
+abiDecoder.addABI(RelayHubABI.abi)
+abiDecoder.addABI(PayMasterABI.abi)
+abiDecoder.addABI(StakeManagerABI.abi)
 
 const INVALID_SIGNATURE = 'Transaction does not have a valid signature'
 const UNKNOWN_WORKER = 'Transaction is sent by an unknown worker'
