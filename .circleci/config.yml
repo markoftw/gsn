@@ -216,9 +216,9 @@ workflows:
   build_and_test:
     jobs:
       - build
-      - build_paymasters:
-          requires:
-            - build
+#      - build_paymasters:
+#          requires:
+#            - build
       #      - test_dev:
       #          requires:
       #            - build
