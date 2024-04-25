@@ -108,9 +108,9 @@ jobs: # a collection of steps
             head -n 50 dist/relayserver.js
             tail -n 50 dist/relayserver.js
             
-            docker build -f Dockerfile -t $DOCKERHUB_USERNAME/opengsn-relay:$APP_VERSION .
+            docker build -f Dockerfile -t $DOCKERHUB_USERNAME/opengsn-relay:3.0.0-beta.3 .
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-            docker push $DOCKERHUB_USERNAME/opengsn-relay:$APP_VERSION
+            docker push $DOCKERHUB_USERNAME/opengsn-relay:3.0.0-beta.3
 
   gas_calculations:
     working_directory: ~/gls # directory where steps will run
@@ -229,7 +229,7 @@ workflows:
       - dockerize:
           requires:
             - build
-            - build_paymasters
+#            - build_paymasters
 #            - test_paymasters
 #      - lint:
 #          requires:
