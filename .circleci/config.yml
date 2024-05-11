@@ -216,9 +216,9 @@ workflows:
   build_and_test:
     jobs:
       - build
-#      - build_paymasters:
-#          requires:
-#            - build
+      - build_paymasters:
+          requires:
+            - build
       #      - test_dev:
       #          requires:
       #            - build
@@ -229,7 +229,7 @@ workflows:
       - dockerize:
           requires:
             - build
-#            - build_paymasters
+            - build_paymasters
 #            - test_paymasters
 #      - lint:
 #          requires:
