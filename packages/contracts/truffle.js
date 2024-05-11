@@ -16,7 +16,7 @@ module.exports = {
   contracts_directory: './solpp',
   compilers: {
     solc: {
-      version: '0.8.23',
+      version: '0.8.7',
       settings: {
         evmVersion: 'london',
         optimizer: {
