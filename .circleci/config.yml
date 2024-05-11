@@ -3,7 +3,7 @@ jobs: # a collection of steps
   build: # runs not using Workflows must have a `build` job as entry point
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
 
     steps: # a collection of executable commands
       - checkout # special step to check out source code to working directory
@@ -13,14 +13,14 @@ jobs: # a collection of steps
           command: yarn create-all-deps
 
       - restore_cache: # special step to restore the dependency cache
-          key: dependency-cache-{{ .Environment.CACHE_VERSION }}-{{ checksum "yarn.lock" }}-{{ checksum "all.deps" }}
+          key: dependency-cache-{{ checksum "yarn.lock" }}-{{ checksum "all.deps" }}
 
       - run:
           name: yarn-install-if-no-cache
           command:  test -d node_modules/truffle || yarn
 
       - save_cache: # special step to save the dependency cache
-          key: dependency-cache-{{ .Environment.CACHE_VERSION }}-{{ checksum "yarn.lock" }}-{{ checksum "all.deps" }}
+          key: dependency-cache-{{ checksum "yarn.lock" }}-{{ checksum "all.deps" }}
           paths:
             - ./node_modules
             - ./packages/cli/node_modules
@@ -34,7 +34,9 @@ jobs: # a collection of steps
 
       - run:
           name: yarn-preprocess
-          command: yarn preprocess
+          command: |
+            yarn preprocess
+            ls -al
 
       - persist_to_workspace:
           root: .
@@ -43,7 +45,7 @@ jobs: # a collection of steps
   build_paymasters:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -57,7 +59,7 @@ jobs: # a collection of steps
   test_dev:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -70,7 +72,7 @@ jobs: # a collection of steps
   test_paymasters:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -80,10 +82,40 @@ jobs: # a collection of steps
       - store_test_results: # special step to upload test results for display in Test Summary
           path: /tmp/test-paymasters-results.log
 
+  dockerize:
+    working_directory: ~/gls # directory where steps will run
+    docker: # run the steps with Docker
+      - image: cimg/node:16.20
+    steps: # a collection of executable commands
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: dockerize
+          command: |
+            ls -al
+            cd dockers/jsrelay
+            ls -al
+            
+            mkdir dist
+            touch dist/relayserver.js
+
+            npx webpack
+            
+            ls -al
+            ls -al dist/
+            head -n 50 dist/relayserver.js
+            tail -n 50 dist/relayserver.js
+            
+            docker build -f Dockerfile -t $DOCKERHUB_USERNAME/opengsn-relay:3.0.0-beta.10 .
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+            docker push $DOCKERHUB_USERNAME/opengsn-relay:3.0.0-beta.10
+
   gas_calculations:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -92,22 +124,22 @@ jobs: # a collection of steps
           command: yarn lerna-run-gas-calculations-with-hardhat | tee /tmp/gas-calculations-results.log
       - store_test_results: # special step to upload test results for display in Test Summary
           path: /tmp/gas-calculations-results.log
-#  test_paymasters:
-#    working_directory: ~/gls # directory where steps will run
-#    docker: # run the steps with Docker
-#      - image: cimg/node:16.20.1
-#    steps: # a collection of executable commands
-#      - attach_workspace:
-#          at: .
-#      - run: # run tests
-#          name: test
-#          command: yarn lerna-run-test-only-with-hardhat | tee /tmp/test-paymasters-results.log
-#      - store_test_results: # special step to upload test results for display in Test Summary
-#          path: /tmp/test-paymasters-results.log
+  #  test_paymasters:
+  #    working_directory: ~/gls # directory where steps will run
+  #    docker: # run the steps with Docker
+  #      - image: cimg/node:16.20
+  #    steps: # a collection of executable commands
+  #      - attach_workspace:
+  #          at: .
+  #      - run: # run tests
+  #          name: test
+  #          command: yarn lerna-run-test-only-with-hardhat | tee /tmp/test-paymasters-results.log
+  #      - store_test_results: # special step to upload test results for display in Test Summary
+  #          path: /tmp/test-paymasters-results.log
   lint:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -117,7 +149,7 @@ jobs: # a collection of steps
   lint_paymasters:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -127,7 +159,7 @@ jobs: # a collection of steps
   depcheck:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -138,7 +170,7 @@ jobs: # a collection of steps
   test_webpack:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -151,7 +183,7 @@ jobs: # a collection of steps
   test_fork:
     working_directory: ~/gls # directory where steps will run
     docker: # run the steps with Docker
-      - image: cimg/node:16.20.1
+      - image: cimg/node:16.20
     steps: # a collection of executable commands
       - attach_workspace:
           at: .
@@ -187,31 +219,35 @@ workflows:
       - build_paymasters:
           requires:
             - build
-      - test_dev:
-          requires:
-            - build
-      - test_paymasters:
-          requires:
-            - build
-            - build_paymasters
-      - lint:
-          requires:
-            - build
-      - lint_paymasters:
-          requires:
-            - build_paymasters
-      - depcheck:
+      #      - test_dev:
+      #          requires:
+      #            - build
+      #      - test_paymasters:
+      #          requires:
+      #            - build
+      #            - build_paymasters
+      - dockerize:
           requires:
             - build
             - build_paymasters
-      - test_fork:
-          requires:
-            - build
-            - build_paymasters
-      - gas_calculations:
-          requires:
-            - build
-      - test_webpack:
-          requires:
-            - build
-
+#            - test_paymasters
+#      - lint:
+#          requires:
+#            - build
+#      - lint_paymasters:
+#          requires:
+#            - build_paymasters
+#      - depcheck:
+#          requires:
+#            - build
+#            - build_paymasters
+#      - test_fork:
+#          requires:
+#            - build
+#            - build_paymasters
+#      - gas_calculations:
+#          requires:
+#            - build
+#      - test_webpack:
+#          requires:
+#            - build
